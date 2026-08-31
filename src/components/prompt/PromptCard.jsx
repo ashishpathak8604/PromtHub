@@ -3,7 +3,7 @@ import { Heart, Bookmark, Copy, CheckCircle2, MessageSquarePlus, Edit } from 'lu
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAppContext } from '../../context/AppContext';
-import { useUser } from '@clerk/clerk-react';
+import { useUser } from '@clerk/react';
 import SuggestionModal from './SuggestionModal';
 import { cn } from '../../utils/cn';
 

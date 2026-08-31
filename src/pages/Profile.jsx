@@ -1,4 +1,4 @@
-import { useUser } from '@clerk/clerk-react';
+import { useUser } from '@clerk/react';
 import { Navigate, Link } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import ProfileHeader from '../components/profile/ProfileHeader';

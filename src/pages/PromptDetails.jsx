@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
-import { useUser } from '@clerk/clerk-react';
+import { useUser } from '@clerk/react';
 import { ArrowLeft, CheckCircle2, Copy, Heart, Bookmark, Edit } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '../utils/cn';

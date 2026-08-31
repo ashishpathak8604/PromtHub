@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import Lenis from 'lenis';
 
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
-import { ClerkProvider } from '@clerk/clerk-react';
+import { ClerkProvider } from '@clerk/react';
 import { AppContextProvider } from './context/AppContext';
 
 import Navbar from './components/layout/Navbar';

@@ -8,7 +8,7 @@ import {
   SignUpButton,
   useClerk,
   useUser,
-} from "@clerk/clerk-react";
+} from "@clerk/react";
 import { useState, useRef, useEffect } from "react";
 import blackCat from "../../assets/pic12.png";
 
