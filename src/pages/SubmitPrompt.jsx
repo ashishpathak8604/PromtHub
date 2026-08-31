@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, Navigate } from "react-router-dom";
 import { useUser } from "@clerk/react";
 import { useAppContext } from "../context/AppContext";
 import { ArrowLeft, FileText } from "lucide-react";
@@ -67,8 +67,21 @@ const models = [
 export default function SubmitPrompt() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { user } = useUser();
+  const { isLoaded, isSignedIn, user } = useUser();
   const { prompts, addPrompt, updatePrompt } = useAppContext();
+
+  // Auth check - redirect if not signed in
+  if (isLoaded && !isSignedIn) {
+    return <Navigate to="/" />;
+  }
+
+  if (!isLoaded || !user) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#D4D1C9] border-t-[#252525]" />
+      </div>
+    );
+  }
 
   const isEditMode = Boolean(id);
 

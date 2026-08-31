@@ -1,9 +1,7 @@
 
-import { Link, useLocation } from "react-router-dom";
-import { Sparkles, Plus, ChevronDown, User, LogOut, Settings } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Sparkles, Plus, ChevronDown, User, LogOut } from "lucide-react";
 import {
-  SignedIn,
-  SignedOut,
   SignInButton,
   SignUpButton,
   useClerk,
@@ -14,7 +12,7 @@ import blackCat from "../../assets/pic12.png";
 
 export default function Navbar() {
   const location = useLocation();
-  const { user } = useUser();
+  const { user, isLoaded, isSignedIn } = useUser();
   const { signOut } = useClerk();
 
   const [profileOpen, setProfileOpen] = useState(false);
@@ -194,7 +192,7 @@ export default function Navbar() {
 
 
   {/* Signed Out */}
-  <SignedOut>
+  {isLoaded && !isSignedIn && (
     <div className="hidden sm:flex items-center gap-1">
       <SignInButton mode="modal">
         <button
@@ -236,11 +234,12 @@ export default function Navbar() {
         </button>
       </SignUpButton>
     </div>
-  </SignedOut>
+  )}
 
 
   {/* Signed In */}
-  <SignedIn>
+  {isLoaded && isSignedIn && user && (
+    <>
 
     {/* Submit Prompt */}
     <Link
@@ -486,7 +485,8 @@ export default function Navbar() {
 
     </div>
 
-  </SignedIn>
+    </>
+  )}
 
 </div>
       </div>
