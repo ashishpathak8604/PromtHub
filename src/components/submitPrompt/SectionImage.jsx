@@ -1,0 +1,33 @@
+export default function SectionImage({ src, alt, className = "" }) {
+  return (
+    <div
+      className={`
+        relative
+        flex
+        items-end
+        justify-center
+        min-h-[360px]
+        lg:min-h-[430px]
+        overflow-hidden
+        ${className}
+      `}
+    >
+      <img
+        src={src}
+        alt={alt}
+        className="
+          relative
+          z-10
+          max-h-[390px]
+          lg:max-h-[470px]
+          max-w-[90%]
+          object-contain
+          drop-shadow-[0_18px_30px_rgba(30,30,30,0.10)]
+          transition-transform
+          duration-500
+          hover:scale-[1.03]
+        "
+      />
+    </div>
+  );
+}

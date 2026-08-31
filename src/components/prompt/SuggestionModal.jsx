@@ -11,7 +11,6 @@ export default function SuggestionModal({ isOpen, onClose, prompt }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!suggestionText.trim()) return;
-    
     setIsSubmitting(true);
     setTimeout(() => {
       submitSuggestion(prompt.id, suggestionText);
@@ -25,65 +24,62 @@ export default function SuggestionModal({ isOpen, onClose, prompt }) {
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <motion.div 
+          {/* Backdrop */}
+          <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} 
+            className="fixed inset-0 bg-black/20 backdrop-blur-sm"
+            onClick={onClose}
           />
-          
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95, y: 10 }} 
-            animate={{ opacity: 1, scale: 1, y: 0 }} 
-            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            className="relative w-full max-w-2xl glass border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-10"
+
+          {/* Modal */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 8 }}
+            className="relative w-full max-w-2xl bg-white border border-black/[0.07] rounded-2xl shadow-[0_20px_60px_rgba(30,30,30,0.12)] overflow-hidden z-10"
           >
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-white/5">
-              <h3 className="text-xl font-bold text-white">Suggest Edit to Author</h3>
-              <button onClick={onClose} className="text-zinc-400 hover:text-white transition-colors">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-black/[0.06] bg-[#FBFAF7]">
+              <h3 className="text-base font-semibold text-[#252525]">Suggest an Edit</h3>
+              <button onClick={onClose} className="text-[#8A8881] hover:text-[#252525] transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             <form onSubmit={handleSubmit} className="p-6">
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-zinc-300 mb-2">
+              <div className="mb-5">
+                <label className="block text-sm font-medium text-[#44423E] mb-2">
                   How would you improve "{prompt?.title}"?
                 </label>
                 <textarea
                   value={suggestionText}
                   onChange={(e) => setSuggestionText(e.target.value)}
-                  placeholder="Paste your optimized prompt here..."
+                  placeholder="Paste your improved prompt here..."
                   rows={6}
-                  className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-4 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent transition-all resize-none font-mono text-sm leading-relaxed"
+                  className="w-full bg-[#FBFAF7] border border-black/[0.08] rounded-xl p-4 text-sm font-mono text-[#252525] placeholder-[#AAA79F] focus:outline-none focus:border-black/[0.2] focus:bg-white transition-all resize-none leading-relaxed"
                   required
                 />
               </div>
-              
-              <div className="flex items-center justify-between mt-6">
-                <p className="text-xs text-zinc-500">
-                  Your suggestion will be sent to the author for review.
-                </p>
-                <div className="flex gap-3">
-                  <button 
-                    type="button" 
+
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-[#8A8881]">Your suggestion will be sent to the author for review.</p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
                     onClick={onClose}
-                    className="px-4 py-2 rounded-xl text-sm font-medium text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"
                     disabled={isSubmitting}
+                    className="px-4 py-2 rounded-xl text-sm font-medium text-[#77756F] hover:bg-[#F5F4F0] hover:text-[#252525] transition-colors"
                   >
                     Cancel
                   </button>
-                  <button 
+                  <button
                     type="submit"
                     disabled={isSubmitting || !suggestionText.trim()}
-                    className="flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-bold text-white bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-[0_0_15px_rgba(147,51,234,0.3)]"
+                    className="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold text-white bg-[#252525] hover:bg-[#111] disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
                   >
-                    {isSubmitting ? (
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    ) : (
-                      <>
-                        <Send className="w-4 h-4" />
-                        Submit Suggestion
-                      </>
-                    )}
+                    {isSubmitting
+                      ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      : <><Send className="w-4 h-4" />Submit</>}
                   </button>
                 </div>
               </div>

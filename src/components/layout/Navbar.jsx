@@ -1,97 +1,496 @@
-import { Link, useLocation } from 'react-router-dom';
-import { Search, Github, Sparkles } from 'lucide-react';
-import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/clerk-react";
+
+import { Link, useLocation } from "react-router-dom";
+import { Sparkles, Plus, ChevronDown, User, LogOut, Settings } from "lucide-react";
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  SignUpButton,
+  useClerk,
+  useUser,
+} from "@clerk/clerk-react";
+import { useState, useRef, useEffect } from "react";
+import blackCat from "../../assets/pic12.png";
 
 export default function Navbar() {
   const location = useLocation();
-  
+  const { user } = useUser();
+  const { signOut } = useClerk();
+
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef(null);
+
   const navLinks = [
-    { name: 'Discover', path: '/discover' },
-    { name: 'Trending', path: '/trending' },
-    { name: 'Collections', path: '/collections' },
+    { name: "Discover", path: "/discover" },
+    { name: "Trending", path: "/trending" },
+    { name: "Collections", path: "/collections" },
   ];
 
+  // Close profile menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (
+        profileRef.current &&
+        !profileRef.current.contains(event.target)
+      ) {
+        setProfileOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleSignOut = async () => {
+    setProfileOpen(false);
+    await signOut();
+  };
+
   return (
-    <header className="glass sticky top-0 z-50 w-full border-b border-white/10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-8">
-          {/* Logo brand */}
-          <Link to="/" className="flex items-center gap-2 group">
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-tr from-purple-600 to-blue-500 group-hover:scale-105 transition-transform duration-300">
-              <Sparkles className="w-5 h-5 text-white" />
+    <header className="fixed top-4 left-0 right-0 z-50 px-4">
+      <div
+        className="
+          relative
+    overflow-visible
+          mx-auto
+          max-w-5xl
+          h-[68px]
+          flex
+          items-center
+          justify-between
+          gap-6
+          px-4
+          sm:px-5
+          lg:px-6
+          rounded-[22px]
+          border
+          border-black/[0.07]
+          bg-white/90
+          backdrop-blur-xl
+          shadow-[0_8px_30px_rgba(30,30,30,0.08)]
+        "
+      >
+        {/* -------------------------------------------------
+            LEFT — LOGO + NAVIGATION
+        -------------------------------------------------- */}
+        <div className="flex items-center gap-7 min-w-0">
+          {/* Logo */}
+          <Link
+            to="/"
+            className="flex items-center gap-2.5 shrink-0 group"
+          >
+            <div
+              className="
+                flex
+                items-center
+                justify-center
+                w-9
+                h-9
+                rounded-[12px]
+                bg-[#252525]
+                text-white
+                transition-all
+                duration-300
+                group-hover:rotate-[-4deg]
+                group-hover:scale-105
+              "
+            >
+              <Sparkles className="w-[17px] h-[17px]" />
             </div>
-            <span className="font-bold text-lg tracking-tight text-zinc-100">
+
+            <span
+              className="
+                hidden
+                sm:block
+                text-[17px]
+                font-semibold
+                tracking-[-0.03em]
+                text-[#252525]
+              "
+            >
               PromptHub
             </span>
           </Link>
-          
-          {/* Main Links */}
-          <nav className="hidden md:flex gap-6 text-sm font-medium">
-            {navLinks.map((link) => (
-              <Link 
-                key={link.name} 
-                to={link.path}
-                className={`transition-colors ${location.pathname === link.path ? 'text-white font-semibold' : 'text-zinc-400 hover:text-zinc-100'}`}
-              >
-                {link.name}
-              </Link>
-            ))}
+
+          {/* Main Navigation */}
+          <nav className="hidden md:flex items-center gap-1">
+            {navLinks.map((link) => {
+              const isActive = location.pathname === link.path;
+
+              return (
+                <Link
+                  key={link.name}
+                  to={link.path}
+                  className={`
+                    px-3.5
+                    py-2
+                    rounded-xl
+                    text-[13px]
+                    font-medium
+                    transition-all
+                    duration-200
+                    ${
+                      isActive
+                        ? "bg-[#F0EFEA] text-[#252525]"
+                        : "text-[#77756F] hover:bg-[#F5F4F0] hover:text-[#252525]"
+                    }
+                  `}
+                >
+                  {link.name}
+                </Link>
+              );
+            })}
           </nav>
         </div>
 
-        <div className="flex flex-1 items-center justify-end gap-6">
-          {/* Search bar */}
-          <div className="relative hidden sm:block max-w-md w-full ml-8">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 text-zinc-500" />
-            </div>
-            <input
-              type="text"
-              className="block w-full pl-10 pr-3 py-2 border border-zinc-800 rounded-xl leading-5 bg-zinc-900/50 text-zinc-300 placeholder-zinc-500 focus:outline-none focus:bg-zinc-900 focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all duration-300 sm:text-sm"
-              placeholder="Search prompts (e.g., 'React hooks', 'Midjourney landscape')"
-            />
-            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-              <span className="text-zinc-600 text-xs border border-zinc-800 rounded px-1.5 py-0.5">⌘K</span>
+        {/* -------------------------------------------------
+            RIGHT — AUTH + ACTIONS
+        -------------------------------------------------- */}
+        {/* -------------------------------------------------
+    RIGHT — AUTH + ACTIONS
+-------------------------------------------------- */}
+<div className="flex items-center gap-2 relative">
+
+  {/* -------------------------------------------------
+      DECORATIVE CAT
+      Body stays inside navbar.
+      Tail extends below navbar.
+  -------------------------------------------------- */}
+  <div
+    className="
+      pointer-events-none
+      absolute
+      z-30
+
+      right-[612px]
+      top-[6px]
+
+      w-[120px]
+     
+
+      hidden
+      sm:block
+    "
+  >
+    <img
+      src={blackCat}
+      alt=""
+      aria-hidden="true"
+      className="
+        block
+        w-full
+        h-auto
+        rotate-[3deg]
+        object-contain
+        select-none
+
+        drop-shadow-[0_7px_8px_rgba(20,20,20,0.18)]
+      "
+    />
+  </div>
+
+
+  {/* Signed Out */}
+  <SignedOut>
+    <div className="hidden sm:flex items-center gap-1">
+      <SignInButton mode="modal">
+        <button
+          className="
+            h-10
+            px-3.5
+            rounded-xl
+            text-[13px]
+            font-medium
+            text-[#55534E]
+            hover:bg-[#F3F2EE]
+            hover:text-[#252525]
+            transition-all
+            duration-200
+          "
+        >
+          Sign In
+        </button>
+      </SignInButton>
+
+      <SignUpButton mode="modal">
+        <button
+          className="
+            h-10
+            px-4
+            rounded-xl
+            bg-[#252525]
+            text-white
+            text-[13px]
+            font-medium
+            shadow-[0_4px_12px_rgba(30,30,30,0.15)]
+            hover:bg-[#111111]
+            hover:-translate-y-[1px]
+            transition-all
+            duration-200
+          "
+        >
+          Join PromptHub
+        </button>
+      </SignUpButton>
+    </div>
+  </SignedOut>
+
+
+  {/* Signed In */}
+  <SignedIn>
+
+    {/* Submit Prompt */}
+    <Link
+      to="/submit"
+      title="Create a prompt"
+      aria-label="Create a prompt"
+      className="
+        group
+        relative
+        flex
+        items-center
+        justify-center
+
+        w-10
+        h-10
+
+        rounded-xl
+        bg-[#252525]
+        text-white
+
+        shadow-[0_4px_12px_rgba(30,30,30,0.14)]
+
+        hover:bg-[#111111]
+        hover:-translate-y-[1px]
+
+        transition-all
+        duration-200
+
+        z-40
+      "
+    >
+      <Plus
+        className="
+          w-[18px]
+          h-[18px]
+
+          transition-transform
+          duration-300
+
+          group-hover:rotate-90
+        "
+      />
+    </Link>
+
+
+    {/* Profile Button */}
+    <div
+      className="relative z-40"
+      ref={profileRef}
+    >
+      <button
+        onClick={() => setProfileOpen((prev) => !prev)}
+        aria-label="Open profile menu"
+        aria-expanded={profileOpen}
+        className="
+          flex
+          items-center
+          gap-1.5
+
+          h-10
+          pl-1
+          pr-2
+
+          rounded-xl
+
+          hover:bg-[#F3F2EE]
+
+          transition-all
+          duration-200
+        "
+      >
+
+        {/* Avatar */}
+        <img
+          src={user?.imageUrl}
+          alt={user?.fullName || "Profile"}
+          className="
+            w-8
+            h-8
+
+            rounded-[10px]
+            object-cover
+
+            border
+            border-black/[0.08]
+
+            shadow-sm
+          "
+        />
+
+        {/* Dropdown indicator */}
+        <ChevronDown
+          className={`
+            w-3.5
+            h-3.5
+
+            text-[#8A8881]
+
+            transition-transform
+            duration-200
+
+            ${profileOpen ? "rotate-180" : ""}
+          `}
+        />
+      </button>
+
+
+      {/* Profile Dropdown */}
+      {profileOpen && (
+        <div
+          className="
+            absolute
+            right-0
+            top-[calc(100%+10px)]
+
+            w-60
+
+            overflow-hidden
+
+            rounded-2xl
+
+            border
+            border-black/[0.07]
+
+            bg-white
+
+            shadow-[0_15px_40px_rgba(30,30,30,0.12)]
+
+            animate-in
+            fade-in
+            slide-in-from-top-2
+            duration-200
+          "
+        >
+
+          {/* User Info */}
+          <div className="px-4 py-3.5 border-b border-black/[0.06]">
+            <div className="flex items-center gap-3">
+
+              <img
+                src={user?.imageUrl}
+                alt={user?.fullName || "Profile"}
+                className="
+                  w-10
+                  h-10
+                  rounded-xl
+                  object-cover
+                "
+              />
+
+              <div className="min-w-0">
+
+                <p className="
+                  text-sm
+                  font-semibold
+                  text-[#252525]
+                  truncate
+                ">
+                  {user?.fullName || "User"}
+                </p>
+
+                <p className="
+                  text-xs
+                  text-[#8A8881]
+                  truncate
+                ">
+                  {user?.primaryEmailAddress?.emailAddress}
+                </p>
+
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <button className="text-zinc-400 hover:text-zinc-100 transition-colors mr-2">
-              <Github className="w-5 h-5" />
+
+          {/* Menu Items */}
+          <div className="p-1.5">
+
+            <Link
+              to="/profile"
+              onClick={() => setProfileOpen(false)}
+              className="
+                flex
+                items-center
+                gap-3
+                w-full
+
+                px-3
+                py-2.5
+
+                rounded-xl
+
+                text-sm
+                text-[#55534E]
+
+                hover:bg-[#F5F4F0]
+                hover:text-[#252525]
+
+                transition-colors
+              "
+            >
+              <User className="w-4 h-4" />
+              <span>My Profile</span>
+            </Link>
+
+
+          
+
+            <div className="
+              my-1.5
+              border-t
+              border-black/[0.06]
+            " />
+
+
+            <button
+              onClick={handleSignOut}
+              className="
+                flex
+                items-center
+                gap-3
+                w-full
+
+                px-3
+                py-2.5
+
+                rounded-xl
+
+                text-sm
+                text-[#B14A4A]
+
+                hover:bg-[#FFF3F2]
+
+                transition-colors
+              "
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Sign Out</span>
             </button>
-            
-            {/* Clerk Authentication UI */}
-            <SignedOut>
-              <SignInButton mode="modal">
-                <button className="hidden sm:inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-xl text-white bg-white/10 hover:bg-white/20 border border-white/5 transition-all">
-                  Sign In
-                </button>
-              </SignInButton>
-              <SignUpButton mode="modal">
-                <button className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-xl text-white bg-purple-600 hover:bg-purple-500 shadow-[0_0_15px_rgba(147,51,234,0.3)] transition-all">
-                  Sign Up
-                </button>
-              </SignUpButton>
-            </SignedOut>
-            
-            <SignedIn>
-              <Link to="/profile" className="text-sm font-medium text-zinc-400 hover:text-zinc-100 transition-colors mr-2">
-                Profile
-              </Link>
-              <Link to="/submit" className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-xl text-white bg-purple-600 hover:bg-purple-500 shadow-[0_0_15px_rgba(147,51,234,0.3)] transition-all mr-2">
-                Submit Prompt
-              </Link>
-              <UserButton 
-                appearance={{
-                  elements: {
-                    userButtonAvatarBox: "w-9 h-9 border-2 border-purple-500/30"
-                  }
-                }}
-              />
-            </SignedIn>
+
           </div>
         </div>
+      )}
+
+    </div>
+
+  </SignedIn>
+
+</div>
       </div>
     </header>
   );
 }
+

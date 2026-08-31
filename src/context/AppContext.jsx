@@ -110,6 +110,54 @@ export const AppContextProvider = ({ children }) => {
     return true;
   };
 
+  const addPrompt = (promptData) => {
+    if (!isSignedIn || !user) return false;
+    
+    const newPrompt = {
+      id: `prompt-${Date.now()}`,
+      title: promptData.title,
+      description: promptData.description,
+      content: promptData.content,
+      category: promptData.category,
+      model: promptData.model || '',
+      tags: promptData.tags || [],
+      visibility: promptData.visibility || 'public',
+      author: {
+        name: user.fullName || user.firstName || user.username,
+        handle: `@${user.username}`,
+        avatar: user.imageUrl,
+      },
+      likes: 0,
+      bookmarks: 0,
+      createdAt: new Date().toISOString(),
+    };
+    
+    setPrompts(prev => [...prev, newPrompt]);
+    return true;
+  };
+
+  const updatePrompt = (promptId, promptData) => {
+    if (!isSignedIn || !user) return false;
+    
+    setPrompts(prev =>
+      prev.map(p =>
+        p.id === promptId
+          ? {
+              ...p,
+              title: promptData.title,
+              description: promptData.description,
+              content: promptData.content,
+              category: promptData.category,
+              model: promptData.model || '',
+              tags: promptData.tags || [],
+              visibility: promptData.visibility || 'public',
+            }
+          : p
+      )
+    );
+    return true;
+  };
+
   const isBookmarked = (promptId) => bookmarkedPrompts.includes(promptId);
   const isLiked = (promptId) => likedPrompts.includes(promptId);
 
@@ -123,7 +171,9 @@ export const AppContextProvider = ({ children }) => {
     isBookmarked,
     isLiked,
     submitSuggestion,
-    acceptSuggestion
+    acceptSuggestion,
+    addPrompt,
+    updatePrompt,
   };
 
   return (

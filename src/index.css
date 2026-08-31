@@ -1,37 +1,39 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: hsl(240 10% 4%);
-  --color-foreground: hsl(0 0% 98%);
-  
-  --color-card: hsl(240 10% 6%);
-  --color-card-foreground: hsl(0 0% 98%);
-  
-  --color-popover: hsl(240 10% 6%);
-  --color-popover-foreground: hsl(0 0% 98%);
-  
-  /* Primary color - a vibrant, engaging purple/indigo */
-  --color-primary: hsl(252 87% 67%);
+  /* Warm off-white background */
+  --color-background: hsl(40 20% 97%);
+  --color-foreground: hsl(30 8% 14%);
+
+  /* Card surfaces */
+  --color-card: hsl(0 0% 100%);
+  --color-card-foreground: hsl(30 8% 14%);
+
+  --color-popover: hsl(0 0% 100%);
+  --color-popover-foreground: hsl(30 8% 14%);
+
+  /* Primary — near-black for CTAs */
+  --color-primary: hsl(30 5% 14%);
   --color-primary-foreground: hsl(0 0% 100%);
-  
-  /* Secondary - subtle dark gray for neutral actions */
-  --color-secondary: hsl(240 4% 12%);
-  --color-secondary-foreground: hsl(0 0% 98%);
-  
-  /* Muted tones for inactive states and borders */
-  --color-muted: hsl(240 4% 12%);
-  --color-muted-foreground: hsl(240 5% 65%);
-  
-  --color-accent: hsl(240 4% 15%);
-  --color-accent-foreground: hsl(0 0% 98%);
-  
-  --color-destructive: hsl(0 62.8% 30.6%);
-  --color-destructive-foreground: hsl(0 0% 98%);
-  
-  --color-border: hsl(240 4% 16%);
-  --color-input: hsl(240 4% 16%);
-  --color-ring: hsl(252 87% 67%);
-  
+
+  /* Secondary — soft warm gray */
+  --color-secondary: hsl(38 15% 93%);
+  --color-secondary-foreground: hsl(30 8% 25%);
+
+  /* Muted */
+  --color-muted: hsl(38 12% 93%);
+  --color-muted-foreground: hsl(30 5% 52%);
+
+  --color-accent: hsl(38 14% 90%);
+  --color-accent-foreground: hsl(30 8% 25%);
+
+  --color-destructive: hsl(0 55% 48%);
+  --color-destructive-foreground: hsl(0 0% 100%);
+
+  --color-border: hsl(35 10% 88%);
+  --color-input: hsl(38 14% 92%);
+  --color-ring: hsl(30 5% 14%);
+
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
@@ -43,8 +45,6 @@
   }
 }
 
-
-
 @layer base {
   * {
     @apply border-border;
@@ -55,10 +55,16 @@
   }
 }
 
-/* Glassmorphism utility */
+/* Soft card surface utility — replaces dark glassmorphism */
 .glass {
-  background: rgba(20, 20, 22, 0.7);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.06);
 }
+
+/* Scrollbar: thin and warm */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #F7F6F2; }
+::-webkit-scrollbar-thumb { background: #D4D1C9; border-radius: 9999px; }
+

@@ -6,28 +6,21 @@ export default function LiquidBackground() {
   const blob3Ref = useRef(null);
   const containerRef = useRef(null);
 
-  // Use refs to store target (mouse) and current positions for lerping without triggering re-renders
   const targetPos = useRef({ x: 0, y: 0 });
   const currentPos1 = useRef({ x: 0, y: 0 });
   const currentPos2 = useRef({ x: 0, y: 0 });
   const currentPos3 = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
-    // Start at center
     targetPos.current = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
     currentPos1.current = { ...targetPos.current };
     currentPos2.current = { ...targetPos.current };
     currentPos3.current = { ...targetPos.current };
 
     const handleMouseMove = (e) => {
-      // By using clientX/Y directly for a fixed/absolute full container, we get the exact screen pos.
-      // If the container is absolute inside a relative header, we account for its bounding rect.
       if (containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect();
-        targetPos.current = { 
-          x: e.clientX - rect.left, 
-          y: e.clientY - rect.top 
-        };
+        targetPos.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
       } else {
         targetPos.current = { x: e.clientX, y: e.clientY };
       }
@@ -36,20 +29,13 @@ export default function LiquidBackground() {
     window.addEventListener('mousemove', handleMouseMove);
 
     let animationFrameId;
-    
-    // Linear interpolation function for smooth easing
     const lerp = (start, end, factor) => start + (end - start) * factor;
 
     const animate = () => {
-      // Blob 1 follows fastest
       currentPos1.current.x = lerp(currentPos1.current.x, targetPos.current.x, 0.05);
       currentPos1.current.y = lerp(currentPos1.current.y, targetPos.current.y, 0.05);
-
-      // Blob 2 follows slower (parallax)
       currentPos2.current.x = lerp(currentPos2.current.x, targetPos.current.x, 0.03);
       currentPos2.current.y = lerp(currentPos2.current.y, targetPos.current.y, 0.03);
-
-      // Blob 3 follows slowest
       currentPos3.current.x = lerp(currentPos3.current.x, targetPos.current.x, 0.015);
       currentPos3.current.y = lerp(currentPos3.current.y, targetPos.current.y, 0.015);
 
@@ -76,18 +62,25 @@ export default function LiquidBackground() {
 
   return (
     <div ref={containerRef} className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-      <div 
+      {/* Warm amber blob — follows cursor fastest */}
+      <div
         ref={blob1Ref}
-        className="absolute top-0 left-0 w-[400px] h-[400px] sm:w-[500px] sm:h-[500px] bg-purple-600/30 rounded-full blur-3xl mix-blend-screen will-change-transform"
+        className="absolute top-0 left-0 w-[420px] h-[420px] sm:w-[520px] sm:h-[520px] rounded-full blur-3xl will-change-transform"
+        style={{ background: 'rgba(210, 180, 140, 0.22)', mixBlendMode: 'multiply' }}
       />
-      <div 
+      {/* Soft rose blob */}
+      <div
         ref={blob2Ref}
-        className="absolute top-0 left-0 w-[500px] h-[500px] sm:w-[600px] sm:h-[600px] bg-pink-600/20 rounded-full blur-[100px] mix-blend-screen will-change-transform"
+        className="absolute top-0 left-0 w-[520px] h-[520px] sm:w-[640px] sm:h-[640px] rounded-full will-change-transform"
+        style={{ background: 'rgba(220, 190, 170, 0.15)', filter: 'blur(100px)', mixBlendMode: 'multiply' }}
       />
-      <div 
+      {/* Cool stone blob — slowest */}
+      <div
         ref={blob3Ref}
-        className="absolute top-0 left-0 w-[600px] h-[600px] sm:w-[700px] sm:h-[700px] bg-indigo-600/15 rounded-full blur-[120px] mix-blend-screen will-change-transform"
+        className="absolute top-0 left-0 w-[600px] h-[600px] sm:w-[720px] sm:h-[720px] rounded-full will-change-transform"
+        style={{ background: 'rgba(180, 175, 165, 0.12)', filter: 'blur(120px)', mixBlendMode: 'multiply' }}
       />
     </div>
   );
 }
+
