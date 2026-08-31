@@ -2,9 +2,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "devCommand": "npm run dev",
-  "env": {
-    "VITE_CLERK_PUBLISHABLE_KEY": "@VITE_CLERK_PUBLISHABLE_KEY"
-  },
+ 
   "rewrites": [
     {
       "source": "/(.*)",
