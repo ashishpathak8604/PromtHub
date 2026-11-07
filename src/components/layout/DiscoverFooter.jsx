@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles } from 'lucide-react';
 
-import layingOrangeCat from '../../assets/pic11.png';
+import layingOrangeCat from '../../assets/optimized/pic11.webp';
 
 export default function DiscoverFooter() {
   return (
@@ -68,6 +68,10 @@ export default function DiscoverFooter() {
             src={layingOrangeCat}
             alt=""
             aria-hidden="true"
+            width={560}
+            height={280}
+            loading="lazy"
+            decoding="async"
             className="
               block
               w-full

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import CategoryFilter from '../components/prompt/CategoryFilter';
 import PromptGrid from '../components/prompt/PromptGrid';
@@ -8,24 +8,34 @@ import { useAppContext } from '../context/AppContext';
 import DiscoverFooter from '../components/layout/DiscoverFooter';
 import Footer from '../components/layout/Footer';
 
+const ITEMS_PER_PAGE = 6;
+
 export default function Discover() {
   const { prompts } = useAppContext();
   const [activeCategory, setActiveCategory] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
 
-  const filteredPrompts = activeCategory === 'All'
-    ? prompts
-    : prompts.filter(p => p.category === activeCategory);
-
-  const totalPages = Math.ceil(filteredPrompts.length / itemsPerPage);
-
-  useEffect(() => {
+  function handleCategoryChange(category) {
+    setActiveCategory(category);
     setCurrentPage(1);
-  }, [activeCategory]);
+  }
 
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedPrompts = filteredPrompts.slice(startIndex, startIndex + itemsPerPage);
+  const filteredPrompts = useMemo(
+    () => (activeCategory === 'All'
+      ? prompts
+      : prompts.filter(p => p.category === activeCategory)),
+    [prompts, activeCategory]
+  );
+
+  const totalPages = useMemo(
+    () => Math.ceil(filteredPrompts.length / ITEMS_PER_PAGE),
+    [filteredPrompts.length]
+  );
+
+  const paginatedPrompts = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredPrompts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredPrompts, currentPage]);
 
 return (
   <div
@@ -40,7 +50,7 @@ return (
         <CategoryFilter
           categories={categories}
           activeCategory={activeCategory}
-          onCategoryChange={setActiveCategory}
+          onCategoryChange={handleCategoryChange}
         />
       </div>
 

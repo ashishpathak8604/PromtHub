@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Layers } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
@@ -8,12 +9,15 @@ import CollectionFooter from '../components/layout/CollectionFooter';
 export default function Collections() {
   const { prompts } = useAppContext();
 
-  const collectionsWithCounts = collections.map((collection) => ({
-    ...collection,
-    promptCount: collection.promptIds.filter((promptId) =>
-      prompts.some((prompt) => prompt.id === promptId)
-    ).length,
-  }));
+  const collectionsWithCounts = useMemo(
+    () => collections.map((collection) => ({
+      ...collection,
+      promptCount: collection.promptIds.filter((promptId) =>
+        prompts.some((prompt) => prompt.id === promptId)
+      ).length,
+    })),
+    [prompts]
+  );
 
   return (
     <div className="flex flex-col gap-8 pt-28 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto" style={{ minHeight: '100vh' }}>

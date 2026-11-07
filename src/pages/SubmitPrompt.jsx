@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams, Navigate } from "react-router-dom";
 import { useUser } from "@clerk/react";
 import { useAppContext } from "../context/AppContext";
@@ -15,30 +15,17 @@ import {
   SubmitPromptActions,
 } from "../components/submitPrompt";
 
-import catOne from "../assets/pic16.png";
-import dogOne from "../assets/pic17.png";
-import catTwo from "../assets/pic19.png";
-import dogTwo from "../assets/pic18.png";
+import catOne from "../assets/optimized/pic16.webp";
+import dogOne from "../assets/optimized/pic17.webp";
+import catTwo from "../assets/optimized/pic19.webp";
+import dogTwo from "../assets/optimized/pic18.webp";
 
-// ---------------------------------------------------------
-// Temporary mock data.
-// This will eventually come from your backend.
-// ---------------------------------------------------------
-
-const mockPrompts = [
-  {
-    id: "prompt-1",
-    title: "Senior React Hooks Consultant",
-    description:
-      "A prompt that helps analyze React hook usage and suggest production-quality improvements.",
-    content:
-      "Act as a senior React engineer. Analyze the following React component...",
-    category: "Coding",
-    tags: ["React", "JavaScript", "Frontend"],
-    model: "ChatGPT",
-    visibility: "public",
-  },
-];
+import { processPreviewImage, formatFileSize } from "../utils/imageProcessing";
+import {
+  savePreviewImage,
+  getPreviewImageBlob,
+  deletePreviewImage,
+} from "../services/previewImageStore";
 
 const categories = [
   "Coding",
@@ -70,19 +57,6 @@ export default function SubmitPrompt() {
   const { isLoaded, isSignedIn, user } = useUser();
   const { prompts, addPrompt, updatePrompt } = useAppContext();
 
-  // Auth check - redirect if not signed in
-  if (isLoaded && !isSignedIn) {
-    return <Navigate to="/" />;
-  }
-
-  if (!isLoaded || !user) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#D4D1C9] border-t-[#252525]" />
-      </div>
-    );
-  }
-
   const isEditMode = Boolean(id);
 
   const existingPrompt = useMemo(() => {
@@ -107,8 +81,16 @@ export default function SubmitPrompt() {
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState("");
 
+  const [exampleDescription, setExampleDescription] = useState("");
   const [exampleInput, setExampleInput] = useState("");
   const [exampleOutput, setExampleOutput] = useState("");
+
+  const [previewImage, setPreviewImage] = useState(null);
+  const previewImageUrlRef = useRef("");
+  const [existingImageState, setExistingImageState] = useState({ key: "", url: "" });
+  const [removeExistingImage, setRemoveExistingImage] = useState(false);
+  const [isProcessingImage, setIsProcessingImage] = useState(false);
+  const [imageError, setImageError] = useState("");
 
   const [showPreview, setShowPreview] = useState(false);
 
@@ -122,6 +104,8 @@ export default function SubmitPrompt() {
   useEffect(() => {
     if (!existingPrompt) return;
 
+    const preview = existingPrompt.examplePreview || {};
+
     setTitle(existingPrompt.title || "");
     setDescription(existingPrompt.description || "");
     setContent(existingPrompt.content || "");
@@ -129,7 +113,114 @@ export default function SubmitPrompt() {
     setModel(existingPrompt.model || "");
     setVisibility(existingPrompt.visibility || "public");
     setTags(existingPrompt.tags || []);
+
+    setExampleDescription(preview.description || "");
+    setExampleInput(preview.input || existingPrompt.exampleInput || "");
+    setExampleOutput(preview.output || existingPrompt.exampleOutput || "");
+
+    setPreviewImage(null);
+    setRemoveExistingImage(false);
+    setImageError("");
   }, [existingPrompt]);
+
+  // Load the stored image when editing an existing prompt.
+  const existingImageKey = existingPrompt?.examplePreview?.hasImage
+    ? `${existingPrompt.id}:${existingPrompt.examplePreview.imageUpdatedAt || ""}`
+    : "";
+
+  useEffect(() => {
+    if (!existingImageKey) {
+      return undefined;
+    }
+
+    let cancelled = false;
+    let objectUrl = "";
+
+    getPreviewImageBlob(existingPrompt.id)
+      .then((blob) => {
+        if (cancelled || !blob) return;
+        objectUrl = URL.createObjectURL(blob);
+        setExistingImageState({ key: existingImageKey, url: objectUrl });
+      })
+      .catch(() => {
+        // Leave the empty state in place; the upload control still works.
+      });
+
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [existingImageKey, existingPrompt?.id]);
+
+  const existingPreviewUrl = existingImageState.key === existingImageKey
+    ? existingImageState.url
+    : "";
+
+  // Revoke the local preview URL on unmount. Replacement/removal revoke it
+  // immediately so the URL is never left dangling while the form stays open.
+  useEffect(() => () => {
+    if (previewImageUrlRef.current) {
+      URL.revokeObjectURL(previewImageUrlRef.current);
+      previewImageUrlRef.current = "";
+    }
+  }, []);
+
+  // -------------------------------------------------------
+  // Example image handling
+  // -------------------------------------------------------
+
+  async function handlePreviewImageSelect(file) {
+    setImageError("");
+    setIsProcessingImage(true);
+
+    try {
+      const processed = await processPreviewImage(file);
+      const url = URL.createObjectURL(processed.blob);
+
+      if (previewImageUrlRef.current) {
+        URL.revokeObjectURL(previewImageUrlRef.current);
+      }
+      previewImageUrlRef.current = url;
+
+      setPreviewImage({
+        ...processed,
+        name: processed.originalName || file.name,
+        size: processed.blob.size,
+        url,
+      });
+      setRemoveExistingImage(false);
+    } catch (error) {
+      setImageError(
+        error?.message || "Could not process this image. Please try another one."
+      );
+    } finally {
+      setIsProcessingImage(false);
+    }
+  }
+
+  function handlePreviewImageRemove() {
+    if (previewImage) {
+      // Discard the replacement and fall back to the saved image, if any.
+      if (previewImageUrlRef.current) {
+        URL.revokeObjectURL(previewImageUrlRef.current);
+        previewImageUrlRef.current = "";
+      }
+      setPreviewImage(null);
+    } else {
+      // Remove the image that is already saved on the prompt.
+      setRemoveExistingImage(true);
+    }
+
+    setImageError("");
+  }
+
+  const displayedImageUrl = previewImage?.url
+    || (removeExistingImage ? "" : existingPreviewUrl);
+
+  const displayedImageName = previewImage?.name
+    || (!removeExistingImage && existingPreviewUrl ? "Current example image" : "");
+
+  const displayedImageSize = previewImage ? formatFileSize(previewImage.size) : "";
 
   // -------------------------------------------------------
   // Tag Handling
@@ -227,36 +318,117 @@ export default function SubmitPrompt() {
       return;
     }
 
-    setIsSaving(true);
-
-    const promptData = {
-      title: title.trim(),
-      description: description.trim(),
-      content: content.trim(),
-      category,
-      model,
-      tags,
-      visibility,
-      exampleInput: exampleInput.trim(),
-      exampleOutput: exampleOutput.trim(),
-    };
-
-    // Simulate async operation
-    await new Promise((resolve) =>
-      setTimeout(resolve, 800)
-    );
-
-    if (isEditMode) {
-      // Update existing prompt
-      updatePrompt(id, promptData);
-      setIsSaving(false);
-      navigate(`/prompt/${id}`);
-    } else {
-      // Create new prompt
-      addPrompt(promptData);
-      setIsSaving(false);
-      navigate("/profile");
+    if (isProcessingImage) {
+      setImageError("Please wait for the image to finish processing.");
+      return;
     }
+
+    setIsSaving(true);
+    setImageError("");
+
+    const promptId = isEditMode
+      ? id
+      : `prompt-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+    try {
+      const existingPreview = existingPrompt?.examplePreview || {};
+      let imageMeta = { hasImage: false };
+
+      if (previewImage) {
+        await savePreviewImage(promptId, previewImage.blob);
+
+        imageMeta = {
+          hasImage: true,
+          imageWidth: previewImage.width,
+          imageHeight: previewImage.height,
+          imageUpdatedAt: Date.now(),
+        };
+      } else if (isEditMode && existingPreview.hasImage) {
+        if (removeExistingImage) {
+          await deletePreviewImage(promptId);
+          imageMeta = { hasImage: false };
+        } else {
+          imageMeta = {
+            hasImage: true,
+            imageWidth: existingPreview.imageWidth,
+            imageHeight: existingPreview.imageHeight,
+            imageUpdatedAt: existingPreview.imageUpdatedAt,
+          };
+        }
+      }
+
+      const trimmedDescription = exampleDescription.trim();
+      const trimmedInput = exampleInput.trim();
+      const trimmedOutput = exampleOutput.trim();
+
+      const hasImage = Boolean(imageMeta.hasImage);
+      const hasText = Boolean(trimmedDescription || trimmedInput || trimmedOutput);
+
+      const examplePreview = (hasImage || hasText)
+        ? {
+            type: hasImage && trimmedOutput ? "both" : hasImage ? "image" : "text",
+            hasImage,
+            ...(hasImage
+              ? {
+                  imageWidth: imageMeta.imageWidth,
+                  imageHeight: imageMeta.imageHeight,
+                  imageUpdatedAt: imageMeta.imageUpdatedAt,
+                }
+              : {}),
+            ...(trimmedDescription ? { description: trimmedDescription } : {}),
+            ...(trimmedInput ? { input: trimmedInput } : {}),
+            ...(trimmedOutput ? { output: trimmedOutput } : {}),
+          }
+        : undefined;
+
+      const promptData = {
+        title: title.trim(),
+        description: description.trim(),
+        content: content.trim(),
+        category,
+        model,
+        tags,
+        visibility,
+        examplePreview,
+      };
+
+      // Simulate async operation
+      await new Promise((resolve) =>
+        setTimeout(resolve, 800)
+      );
+
+      if (isEditMode) {
+        updatePrompt(id, promptData);
+        setIsSaving(false);
+        navigate(`/prompt/${id}`);
+      } else {
+        addPrompt({ ...promptData, id: promptId });
+        setIsSaving(false);
+        navigate("/profile");
+      }
+    } catch (error) {
+      setImageError(
+        error?.message || "Could not save the example image. Please try again."
+      );
+      setIsSaving(false);
+    }
+  }
+
+  // =========================================================
+  // AUTH / GUARDS
+  // =========================================================
+
+  // Auth check - redirect if not signed in
+  if (isLoaded && !isSignedIn) {
+    return <Navigate to="/" />;
+  }
+
+  if (!isLoaded || !user) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#D4D1C9] border-t-[#252525]" />
+      </div>
+    );
   }
 
   // -------------------------------------------------------
@@ -458,10 +630,19 @@ export default function SubmitPrompt() {
             />
 
             <PromptExampleSection
+              exampleDescription={exampleDescription}
               exampleInput={exampleInput}
               exampleOutput={exampleOutput}
+              onExampleDescriptionChange={setExampleDescription}
               onExampleInputChange={setExampleInput}
               onExampleOutputChange={setExampleOutput}
+              previewImageUrl={displayedImageUrl}
+              previewImageName={displayedImageName}
+              previewImageSize={displayedImageSize}
+              onPreviewImageSelect={handlePreviewImageSelect}
+              onPreviewImageRemove={handlePreviewImageRemove}
+              isProcessingImage={isProcessingImage}
+              imageError={imageError}
               imageSrc={dogTwo}
               imageAlt="Illustration of a dog"
             />
@@ -488,6 +669,10 @@ export default function SubmitPrompt() {
             description={description}
             content={content}
             tags={tags}
+            exampleDescription={exampleDescription}
+            exampleInput={exampleInput}
+            exampleOutput={exampleOutput}
+            previewImageUrl={displayedImageUrl}
           />
 
         )}

@@ -15,6 +15,9 @@ function ProfileHeader({ user, counts = {} }) {
           <img
             src={user.imageUrl}
             alt={user.fullName || 'Profile'}
+            width={112}
+            height={112}
+            decoding="async"
             className="
               w-24
               h-24

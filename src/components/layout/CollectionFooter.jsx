@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
 
-import collectionCats from '../../assets/pic22.png';
+import collectionCats from '../../assets/optimized/pic22.webp';
 
 export default function CollectionFooter() {
   return (
@@ -96,6 +96,10 @@ export default function CollectionFooter() {
             src={collectionCats}
             alt=""
             aria-hidden="true"
+            width={420}
+            height={746}
+            loading="lazy"
+            decoding="async"
             className="
               block
               w-full

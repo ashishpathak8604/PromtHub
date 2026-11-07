@@ -1,4 +1,11 @@
-export default function SectionImage({ src, alt, className = "" }) {
+export default function SectionImage({
+  src,
+  alt,
+  className = "",
+  width,
+  height,
+  loading = "lazy",
+}) {
   return (
     <div
       className={`
@@ -15,6 +22,10 @@ export default function SectionImage({ src, alt, className = "" }) {
       <img
         src={src}
         alt={alt}
+        width={width}
+        height={height}
+        loading={loading}
+        decoding="async"
         className="
           relative
           z-10

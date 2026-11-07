@@ -1,6 +1,7 @@
+import { memo } from 'react';
 import { cn } from '../../utils/cn';
 
-export default function CategoryFilter({ categories, activeCategory, onCategoryChange }) {
+function CategoryFilter({ categories, activeCategory, onCategoryChange }) {
   return (
     <div className="flex flex-wrap items-center justify-center gap-2">
       {categories.map((category) => (
@@ -20,3 +21,5 @@ export default function CategoryFilter({ categories, activeCategory, onCategoryC
     </div>
   );
 }
+
+export default memo(CategoryFilter);

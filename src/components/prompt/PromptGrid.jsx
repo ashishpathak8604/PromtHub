@@ -1,6 +1,10 @@
+import { memo } from 'react';
 import PromptCard from './PromptCard';
+import { useAppContext } from '../../context/AppContext';
 
-export default function PromptGrid({ prompts }) {
+function PromptGrid({ prompts }) {
+  const { toggleBookmark, toggleLike, isBookmarked, isLiked } = useAppContext();
+
   if (!prompts || prompts.length === 0) {
     return (
       <div className="w-full py-16 text-center text-zinc-500">
@@ -12,8 +16,17 @@ export default function PromptGrid({ prompts }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {prompts.map((prompt) => (
-        <PromptCard key={prompt.id} prompt={prompt} />
+        <PromptCard
+          key={prompt.id}
+          prompt={prompt}
+          liked={isLiked(prompt.id)}
+          bookmarked={isBookmarked(prompt.id)}
+          onToggleLike={toggleLike}
+          onToggleBookmark={toggleBookmark}
+        />
       ))}
     </div>
   );
 }
+
+export default memo(PromptGrid);

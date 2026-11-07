@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Sparkles, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import pic6 from '../../assets/pic6-transparent.png';
+import pic6 from '../../assets/optimized/pic6-transparent.webp';
 
 export default function Hero() {
   const navigate = useNavigate();
@@ -141,6 +141,10 @@ export default function Hero() {
             <motion.img
   src={pic6}
   alt="AI creator illustration"
+  width={907}
+  height={1360}
+  fetchPriority="high"
+  decoding="async"
   className="
     relative
     z-10

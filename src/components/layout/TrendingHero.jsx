@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
-import orangeImage from '../../assets/pic13.png';
-import dogImage from '../../assets/pic14.png';
+import orangeImage from '../../assets/optimized/pic13.webp';
+import dogImage from '../../assets/optimized/pic14.webp';
 
 export default function TrendingHero() {
   return (
@@ -109,6 +109,9 @@ export default function TrendingHero() {
       src={orangeImage}
       alt=""
       aria-hidden="true"
+      width={340}
+      height={314}
+      decoding="async"
 
       className="
         absolute
@@ -243,6 +246,9 @@ export default function TrendingHero() {
             src={dogImage}
             alt=""
             aria-hidden="true"
+            width={680}
+            height={621}
+            decoding="async"
 
             className="
               block

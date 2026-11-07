@@ -1,8 +1,40 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { useUser } from '@clerk/react';
 import { mockPrompts } from '../services/mockData';
 
 const AppContext = createContext();
+
+const storageKeys = {
+  bookmarks: (userId) => `bookmarks_${userId}`,
+  likes: (userId) => `likes_${userId}`,
+  suggestions: (userId) => `suggestions_${userId}`,
+  prompts: (userId) => `prompts_${userId}`,
+};
+
+function readStorage(key, fallback) {
+  try {
+    const stored = localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : fallback;
+  } catch (error) {
+    console.warn(`Could not read ${key} from localStorage`, error);
+    return fallback;
+  }
+}
+
+function writeStorage(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (error) {
+    console.warn(`Could not persist ${key} to localStorage`, error);
+  }
+}
 
 export const useAppContext = () => {
   const context = useContext(AppContext);
@@ -13,7 +45,7 @@ export const useAppContext = () => {
 };
 
 export const AppContextProvider = ({ children }) => {
-  const { isLoaded, isSignedIn, user } = useUser();
+  const { isSignedIn, user } = useUser();
   const [prompts, setPrompts] = useState(mockPrompts);
   const [bookmarkedPrompts, setBookmarkedPrompts] = useState([]);
   const [likedPrompts, setLikedPrompts] = useState([]);
@@ -22,15 +54,10 @@ export const AppContextProvider = ({ children }) => {
   // Load from local storage when user signs in (simulating a DB fetch)
   useEffect(() => {
     if (isSignedIn && user) {
-      const storedBookmarks = localStorage.getItem(`bookmarks_${user.id}`);
-      const storedLikes = localStorage.getItem(`likes_${user.id}`);
-      const storedSuggestions = localStorage.getItem(`suggestions_${user.id}`);
-      const storedPrompts = localStorage.getItem(`prompts_${user.id}`);
-      
-      if (storedBookmarks) setBookmarkedPrompts(JSON.parse(storedBookmarks));
-      if (storedLikes) setLikedPrompts(JSON.parse(storedLikes));
-      if (storedSuggestions) setSuggestions(JSON.parse(storedSuggestions));
-      if (storedPrompts) setPrompts(JSON.parse(storedPrompts));
+      setBookmarkedPrompts(readStorage(storageKeys.bookmarks(user.id), []));
+      setLikedPrompts(readStorage(storageKeys.likes(user.id), []));
+      setSuggestions(readStorage(storageKeys.suggestions(user.id), []));
+      setPrompts(readStorage(storageKeys.prompts(user.id), mockPrompts));
     } else {
       // Clear state on sign out
       setBookmarkedPrompts([]);
@@ -42,143 +69,197 @@ export const AppContextProvider = ({ children }) => {
   // Save to local storage whenever state changes (simulating DB updates)
   useEffect(() => {
     if (isSignedIn && user) {
-      localStorage.setItem(`bookmarks_${user.id}`, JSON.stringify(bookmarkedPrompts));
-      localStorage.setItem(`likes_${user.id}`, JSON.stringify(likedPrompts));
-      localStorage.setItem(`suggestions_${user.id}`, JSON.stringify(suggestions));
-      localStorage.setItem(`prompts_${user.id}`, JSON.stringify(prompts));
+      writeStorage(storageKeys.bookmarks(user.id), bookmarkedPrompts);
+      writeStorage(storageKeys.likes(user.id), likedPrompts);
+      writeStorage(storageKeys.suggestions(user.id), suggestions);
+      writeStorage(storageKeys.prompts(user.id), prompts);
     }
   }, [bookmarkedPrompts, likedPrompts, suggestions, prompts, isSignedIn, user]);
 
-  const toggleBookmark = (promptId) => {
-    if (!isSignedIn) return false; // Need auth to bookmark
-    setBookmarkedPrompts(prev => prev.includes(promptId) ? prev.filter(id => id !== promptId) : [...prev, promptId]);
-    return true;
-  };
+  const toggleBookmark = useCallback(
+    (promptId) => {
+      if (!isSignedIn) return false; // Need auth to bookmark
+      setBookmarkedPrompts((previous) =>
+        previous.includes(promptId)
+          ? previous.filter((id) => id !== promptId)
+          : [...previous, promptId]
+      );
+      return true;
+    },
+    [isSignedIn]
+  );
 
-  const toggleLike = (promptId) => {
-    if (!isSignedIn) return false; // Need auth to like
-    setLikedPrompts(prev => {
-      const isCurrentlyLiked = prev.includes(promptId);
-      
-      // Update mock total count
-      setPrompts(currentPrompts => currentPrompts.map(p => {
-        if (p.id === promptId) {
-          return { ...p, likes: p.likes + (isCurrentlyLiked ? -1 : 1) };
-        }
-        return p;
-      }));
+  const toggleLike = useCallback(
+    (promptId) => {
+      if (!isSignedIn) return false; // Need auth to like
 
-      return isCurrentlyLiked ? prev.filter(id => id !== promptId) : [...prev, promptId];
-    });
-    return true;
-  };
+      setLikedPrompts((previous) => {
+        const isCurrentlyLiked = previous.includes(promptId);
 
-  const submitSuggestion = (promptId, text) => {
-    if (!isSignedIn) return false;
-    const newSuggestion = {
-      id: `sugg-${Date.now()}`,
-      promptId,
-      authorName: user.fullName || user.username || user.firstName,
-      authorAvatar: user.imageUrl,
-      text,
-      status: 'pending',
-      createdAt: new Date().toISOString()
-    };
-    setSuggestions(prev => [...prev, newSuggestion]);
-    return true;
-  };
+        // Update mock total count
+        setPrompts((currentPrompts) =>
+          currentPrompts.map((prompt) => {
+            if (prompt.id === promptId) {
+              return { ...prompt, likes: prompt.likes + (isCurrentlyLiked ? -1 : 1) };
+            }
+            return prompt;
+          })
+        );
 
-  const acceptSuggestion = (suggestionId) => {
-    if (!isSignedIn) return false;
-    
-    setSuggestions(prev => {
-      const suggestion = prev.find(s => s.id === suggestionId);
-      if (!suggestion) return prev;
-      
-      // Update prompt content
-      setPrompts(currentPrompts => 
-        currentPrompts.map(p => 
-          p.id === suggestion.promptId 
-            ? { ...p, content: suggestion.text } 
-            : p
+        return isCurrentlyLiked
+          ? previous.filter((id) => id !== promptId)
+          : [...previous, promptId];
+      });
+
+      return true;
+    },
+    [isSignedIn]
+  );
+
+  const submitSuggestion = useCallback(
+    (promptId, text) => {
+      if (!isSignedIn) return false;
+
+      const newSuggestion = {
+        id: `sugg-${Date.now()}`,
+        promptId,
+        authorName: user.fullName || user.username || user.firstName,
+        authorAvatar: user.imageUrl,
+        text,
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+      };
+
+      setSuggestions((previous) => [...previous, newSuggestion]);
+      return true;
+    },
+    [isSignedIn, user]
+  );
+
+  const acceptSuggestion = useCallback(
+    (suggestionId) => {
+      if (!isSignedIn) return false;
+
+      setSuggestions((previous) => {
+        const suggestion = previous.find((item) => item.id === suggestionId);
+        if (!suggestion) return previous;
+
+        // Update prompt content
+        setPrompts((currentPrompts) =>
+          currentPrompts.map((prompt) =>
+            prompt.id === suggestion.promptId
+              ? { ...prompt, content: suggestion.text }
+              : prompt
+          )
+        );
+
+        // Mark suggestion as accepted
+        return previous.map((item) =>
+          item.id === suggestionId ? { ...item, status: 'accepted' } : item
+        );
+      });
+
+      return true;
+    },
+    [isSignedIn]
+  );
+
+  const addPrompt = useCallback(
+    (promptData) => {
+      if (!isSignedIn || !user) return false;
+
+      const newPrompt = {
+        id: promptData.id || `prompt-${Date.now()}`,
+        title: promptData.title,
+        description: promptData.description,
+        content: promptData.content,
+        category: promptData.category,
+        model: promptData.model || '',
+        tags: promptData.tags || [],
+        visibility: promptData.visibility || 'public',
+        examplePreview: promptData.examplePreview,
+        author: {
+          name: user.fullName || user.firstName || user.username,
+          handle: `@${user.username}`,
+          avatar: user.imageUrl,
+        },
+        likes: 0,
+        bookmarks: 0,
+        createdAt: new Date().toISOString(),
+      };
+
+      setPrompts((previous) => [...previous, newPrompt]);
+      return true;
+    },
+    [isSignedIn, user]
+  );
+
+  const updatePrompt = useCallback(
+    (promptId, promptData) => {
+      if (!isSignedIn || !user) return false;
+
+      setPrompts((previous) =>
+        previous.map((prompt) =>
+          prompt.id === promptId
+            ? {
+                ...prompt,
+                title: promptData.title,
+                description: promptData.description,
+                content: promptData.content,
+                category: promptData.category,
+                model: promptData.model || '',
+                tags: promptData.tags || [],
+                visibility: promptData.visibility || 'public',
+                examplePreview: promptData.examplePreview,
+              }
+            : prompt
         )
       );
-
-      // Mark suggestion as accepted
-      return prev.map(s => s.id === suggestionId ? { ...s, status: 'accepted' } : s);
-    });
-    return true;
-  };
-
-  const addPrompt = (promptData) => {
-    if (!isSignedIn || !user) return false;
-    
-    const newPrompt = {
-      id: `prompt-${Date.now()}`,
-      title: promptData.title,
-      description: promptData.description,
-      content: promptData.content,
-      category: promptData.category,
-      model: promptData.model || '',
-      tags: promptData.tags || [],
-      visibility: promptData.visibility || 'public',
-      author: {
-        name: user.fullName || user.firstName || user.username,
-        handle: `@${user.username}`,
-        avatar: user.imageUrl,
-      },
-      likes: 0,
-      bookmarks: 0,
-      createdAt: new Date().toISOString(),
-    };
-    
-    setPrompts(prev => [...prev, newPrompt]);
-    return true;
-  };
-
-  const updatePrompt = (promptId, promptData) => {
-    if (!isSignedIn || !user) return false;
-    
-    setPrompts(prev =>
-      prev.map(p =>
-        p.id === promptId
-          ? {
-              ...p,
-              title: promptData.title,
-              description: promptData.description,
-              content: promptData.content,
-              category: promptData.category,
-              model: promptData.model || '',
-              tags: promptData.tags || [],
-              visibility: promptData.visibility || 'public',
-            }
-          : p
-      )
-    );
-    return true;
-  };
-
-  const isBookmarked = (promptId) => bookmarkedPrompts.includes(promptId);
-  const isLiked = (promptId) => likedPrompts.includes(promptId);
-
-  const value = {
-    prompts,
-    bookmarkedPrompts,
-    likedPrompts,
-    suggestions,
-    toggleBookmark,
-    toggleLike,
-    isBookmarked,
-    isLiked,
-    submitSuggestion,
-    acceptSuggestion,
-    addPrompt,
-    updatePrompt,
-  };
-
-  return (
-    <AppContext.Provider value={value}>
-      {children}
-    </AppContext.Provider>
+      return true;
+    },
+    [isSignedIn, user]
   );
+
+  const isBookmarked = useCallback(
+    (promptId) => bookmarkedPrompts.includes(promptId),
+    [bookmarkedPrompts]
+  );
+
+  const isLiked = useCallback(
+    (promptId) => likedPrompts.includes(promptId),
+    [likedPrompts]
+  );
+
+  const value = useMemo(
+    () => ({
+      prompts,
+      bookmarkedPrompts,
+      likedPrompts,
+      suggestions,
+      toggleBookmark,
+      toggleLike,
+      isBookmarked,
+      isLiked,
+      submitSuggestion,
+      acceptSuggestion,
+      addPrompt,
+      updatePrompt,
+    }),
+    [
+      prompts,
+      bookmarkedPrompts,
+      likedPrompts,
+      suggestions,
+      toggleBookmark,
+      toggleLike,
+      isBookmarked,
+      isLiked,
+      submitSuggestion,
+      acceptSuggestion,
+      addPrompt,
+      updatePrompt,
+    ]
+  );
+
+  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };

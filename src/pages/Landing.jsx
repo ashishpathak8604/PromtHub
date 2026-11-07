@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Sparkles, Users, Zap, Search } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -7,18 +8,19 @@ import PromptGrid from '../components/prompt/PromptGrid';
 import Footer from '../components/layout/Footer';
 
 import { useAppContext } from '../context/AppContext';
-import dogImage from '../assets/pic5.png';
+import dogImage from '../assets/optimized/pic5.webp';
 
 
 // Change this path if your cactus has a different filename/location
-import cactus from '../assets/cactus.png';
+import cactus from '../assets/optimized/cactus.webp';
 
 export default function Landing() {
   const { prompts } = useAppContext();
 
-  const trendingPreview = [...prompts]
-    .sort((a, b) => b.likes - a.likes)
-    .slice(0, 3);
+  const trendingPreview = useMemo(
+    () => [...prompts].sort((a, b) => b.likes - a.likes).slice(0, 3),
+    [prompts]
+  );
 
   return (
     <div
@@ -255,6 +257,10 @@ export default function Landing() {
                 src={dogImage}
                 alt=""
                 aria-hidden="true"
+                width={480}
+                height={206}
+                loading="lazy"
+                decoding="async"
                 className="
                   relative
                   z-10
@@ -471,6 +477,10 @@ export default function Landing() {
     src={cactus}
     alt=""
     aria-hidden="true"
+    width={500}
+    height={500}
+    loading="lazy"
+    decoding="async"
     className="
       w-72
       sm:w-80

@@ -1,8 +1,31 @@
+import cat from '../../assets/optimized/pic20.webp';
 
-import React from 'react';
-import { Link } from 'react-router-dom';
-import cat from '../../assets/pic20.png';
-export default function PromptPreview({ category, model, title, description, content, tags }) {
+function PreviewLabel({ children }) {
+  return (
+    <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-[#ECEAE4] text-[11px] font-medium text-[#55534E]">
+      {children}
+    </span>
+  );
+}
+
+export default function PromptPreview({
+  category,
+  model,
+  title,
+  description,
+  content,
+  tags,
+  exampleDescription,
+  exampleInput,
+  exampleOutput,
+  previewImageUrl,
+}) {
+  const hasExample = Boolean(
+    exampleDescription?.trim() ||
+    exampleInput?.trim() ||
+    exampleOutput?.trim() ||
+    previewImageUrl
+  );
 
   return (
     <div className="max-w-4xl mx-auto ">
@@ -89,6 +112,64 @@ export default function PromptPreview({ category, model, title, description, con
           </div>
         </div>
 
+        {hasExample && (
+          <section className="mt-10 pt-8 border-t border-black/[0.06]">
+            <div className="flex items-center gap-2.5 mb-5">
+              <h3 className="text-sm font-semibold text-[#44423E] uppercase tracking-wider">
+                Example Preview
+              </h3>
+              <PreviewLabel>Preview</PreviewLabel>
+            </div>
+
+            {exampleDescription?.trim() && (
+              <p className="text-sm text-[#77756F] leading-relaxed mb-5 whitespace-pre-wrap">
+                {exampleDescription.trim()}
+              </p>
+            )}
+
+            {exampleInput?.trim() && (
+              <div className="mb-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <PreviewLabel>Example input</PreviewLabel>
+                </div>
+                <div className="rounded-2xl border border-dashed border-black/[0.1] bg-[#FBFAF7] p-5">
+                  <pre className="whitespace-pre-wrap break-words font-mono text-[13px] leading-[1.8] text-[#55534E]">
+                    {exampleInput.trim()}
+                  </pre>
+                </div>
+              </div>
+            )}
+
+            {previewImageUrl && (
+              <div className="mb-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <PreviewLabel>Generated output</PreviewLabel>
+                </div>
+                <img
+                  src={previewImageUrl}
+                  alt="Example preview"
+                  className="block w-full max-h-[420px] object-contain rounded-2xl border border-black/[0.06] bg-[#F7F6F2]"
+                />
+              </div>
+            )}
+
+            {exampleOutput?.trim() && (
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <PreviewLabel>
+                    {previewImageUrl ? 'Additional output' : 'Generated output'}
+                  </PreviewLabel>
+                </div>
+                <div className="rounded-2xl border border-black/[0.06] bg-[#F7F6F2] p-5 sm:p-6">
+                  <pre className="whitespace-pre-wrap break-words font-mono text-[13px] leading-[1.8] text-[#3D3B37]">
+                    {exampleOutput.trim()}
+                  </pre>
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
         {tags.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-6">
             {tags.map((tag) => (
@@ -100,13 +181,16 @@ export default function PromptPreview({ category, model, title, description, con
         )}
       </div>
       <div className="mt-12 flex justify-center">
-  <img
-    src={cat}
-    alt="Cat illustration"
-    className="w-40 sm:w-40 md:w-70 h-auto object-contain"
-  />
-</div>
+        <img
+          src={cat}
+          alt="Cat illustration"
+          width={340}
+          height={324}
+          loading="lazy"
+          decoding="async"
+          className="w-40 sm:w-40 md:w-70 h-auto object-contain"
+        />
+      </div>
     </div>
-    
   );
 }

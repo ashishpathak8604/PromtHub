@@ -1,4 +1,4 @@
-import dogImage from '../../assets/pic15.png';
+import dogImage from '../../assets/optimized/pic15.webp';
 
 export default function TrendingFooter() {
   return (
@@ -51,6 +51,10 @@ export default function TrendingFooter() {
             src={dogImage}
             alt=""
             aria-hidden="true"
+            width={420}
+            height={630}
+            loading="lazy"
+            decoding="async"
             className="
               block
               w-full

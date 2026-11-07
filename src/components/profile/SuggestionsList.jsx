@@ -26,6 +26,10 @@ function SuggestionsList({ suggestions = [], prompts = [], acceptSuggestion }) {
                 <img
                   src={suggestion.authorAvatar}
                   alt="avatar"
+                  width={36}
+                  height={36}
+                  loading="lazy"
+                  decoding="async"
                   className="w-9 h-9 rounded-xl border border-black/[0.08]"
                 />
 

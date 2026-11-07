@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Layers } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
@@ -7,11 +8,24 @@ import { collections } from '../services/collectionData';
 
 export default function CollectionDetails() {
   const { id } = useParams();
-  const { prompts } = useAppContext();
+  const {
+    prompts,
+    toggleBookmark,
+    toggleLike,
+    isBookmarked,
+    isLiked,
+  } = useAppContext();
 
 
   const collection = collections.find(
     (item) => item.id === id
+  );
+
+  const collectionPrompts = useMemo(
+    () => (collection
+      ? prompts.filter((prompt) => collection.promptIds.includes(prompt.id))
+      : []),
+    [prompts, collection]
   );
 
 
@@ -58,11 +72,6 @@ export default function CollectionDetails() {
       </div>
     );
   }
-
-
-  const collectionPrompts = prompts.filter((prompt) =>
-    collection.promptIds.includes(prompt.id)
-  );
 
 
   return (
@@ -136,7 +145,14 @@ export default function CollectionDetails() {
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {collectionPrompts.map((prompt) => (
-              <PromptCard key={prompt.id} prompt={prompt} />
+              <PromptCard
+                key={prompt.id}
+                prompt={prompt}
+                liked={isLiked(prompt.id)}
+                bookmarked={isBookmarked(prompt.id)}
+                onToggleLike={toggleLike}
+                onToggleBookmark={toggleBookmark}
+              />
             ))}
           </div>
 

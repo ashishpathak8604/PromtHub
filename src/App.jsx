@@ -1,21 +1,26 @@
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import Lenis from 'lenis';
 
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { ClerkProvider } from '@clerk/react';
+import { MotionConfig } from 'framer-motion';
 import { AppContextProvider } from './context/AppContext';
 
 import Navbar from './components/layout/Navbar';
 import ScrollToTop from './components/layout/ScrollToTop';
+import PageLoader from './components/layout/PageLoader';
 import Landing from './pages/Landing';
-import Discover from './pages/Discover';
-import Trending from './pages/Trending';
-import Collections from './pages/Collections';
-import CollectionDetails from './pages/CollectionDetails';
-import Profile from './pages/Profile';
-import PromptDetails from './pages/PromptDetails';
-import SubmitPrompt from './pages/SubmitPrompt';
 import Footer from './components/layout/Footer';
+import { setLenisInstance } from './utils/lenis';
+
+// Route-level code splitting: every secondary page is loaded on demand.
+const Discover = lazy(() => import('./pages/Discover'));
+const Trending = lazy(() => import('./pages/Trending'));
+const Collections = lazy(() => import('./pages/Collections'));
+const CollectionDetails = lazy(() => import('./pages/CollectionDetails'));
+const Profile = lazy(() => import('./pages/Profile'));
+const PromptDetails = lazy(() => import('./pages/PromptDetails'));
+const SubmitPrompt = lazy(() => import('./pages/SubmitPrompt'));
 
 
 const PUBLISHABLE_KEY =
@@ -53,33 +58,35 @@ function AppLayout() {
       <ScrollToTop />
 
       <main className="grow w-full mx-auto pb-0">
-        <Routes>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
 
-          <Route path="/" element={<Landing />} />
+            <Route path="/" element={<Landing />} />
 
-          <Route path="/discover" element={<Discover />} />
+            <Route path="/discover" element={<Discover />} />
 
-          <Route path="/trending" element={<Trending />} />
+            <Route path="/trending" element={<Trending />} />
 
-          <Route path="/collections" element={<Collections />} />
+            <Route path="/collections" element={<Collections />} />
 
-          <Route path="/collections/:id" element={<CollectionDetails />} />
+            <Route path="/collections/:id" element={<CollectionDetails />} />
 
-          <Route path="/profile" element={<Profile />} />
+            <Route path="/profile" element={<Profile />} />
 
-          <Route path="/submit" element={<SubmitPrompt />} />
+            <Route path="/submit" element={<SubmitPrompt />} />
 
-          <Route
-            path="/prompt/:id/edit"
-            element={<SubmitPrompt />}
-          />
+            <Route
+              path="/prompt/:id/edit"
+              element={<SubmitPrompt />}
+            />
 
-          <Route
-            path="/prompt/:id"
-            element={<PromptDetails />}
-          />
+            <Route
+              path="/prompt/:id"
+              element={<PromptDetails />}
+            />
 
-        </Routes>
+          </Routes>
+        </Suspense>
            {!hideFooter && <Footer />}
       </main>
 
@@ -95,27 +102,40 @@ function AppLayout() {
 function App() {
 
   useEffect(() => {
+    const prefersReducedMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+    // Native scrolling is cheaper and more predictable when the user
+    // explicitly asks for reduced motion.
+    if (prefersReducedMotion) {
+      return undefined;
+    }
+
+    // A single Lenis instance for the whole app. Route changes call
+    // scrollTo on this instance through ScrollToTop.
     const lenis = new Lenis({
       duration: 1.2,
       smoothWheel: true,
-      syncTouch: true,
+      syncTouch: false,
     });
 
+    setLenisInstance(lenis);
+
+    let animationFrame;
 
     function raf(time) {
       lenis.raf(time);
-      requestAnimationFrame(raf);
+      animationFrame = requestAnimationFrame(raf);
     }
 
-    const animationFrame = requestAnimationFrame(raf);
-
+    animationFrame = requestAnimationFrame(raf);
 
     return () => {
       cancelAnimationFrame(animationFrame);
       lenis.destroy();
+      setLenisInstance(null);
     };
-
   }, []);
 
 
@@ -125,11 +145,11 @@ function App() {
       afterSignOutUrl="/"
     >
       <AppContextProvider>
-
-        <BrowserRouter>
-          <AppLayout />
-        </BrowserRouter>
-
+        <MotionConfig reducedMotion="user">
+          <BrowserRouter>
+            <AppLayout />
+          </BrowserRouter>
+        </MotionConfig>
       </AppContextProvider>
     </ClerkProvider>
   );

@@ -1,9 +1,9 @@
 import { motion } from 'framer-motion';
 import { Search, Sparkles } from 'lucide-react';
 
-import sittingCat from '../../assets/pic7.png';
-import questionMark from '../../assets/pic10.png';
-import layingCat from '../../assets/pic9.png';
+import sittingCat from '../../assets/optimized/pic7.webp';
+import questionMark from '../../assets/optimized/pic10.webp';
+import layingCat from '../../assets/optimized/pic9.webp';
 
 const sparkles = [
   {
@@ -247,6 +247,9 @@ export default function DiscoverHero() {
   src={sittingCat}
   alt=""
   aria-hidden="true"
+  width={480}
+  height={515}
+  decoding="async"
   className="
     relative
     z-10
@@ -305,6 +308,9 @@ export default function DiscoverHero() {
     src={questionMark}
     alt=""
     aria-hidden="true"
+    width={160}
+    height={87}
+    decoding="async"
     className="
       w-full
       h-auto
@@ -556,6 +562,9 @@ export default function DiscoverHero() {
               src={layingCat}
               alt=""
               aria-hidden="true"
+              width={520}
+              height={347}
+              decoding="async"
               className="
                 relative
                 z-10

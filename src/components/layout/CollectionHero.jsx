@@ -1,6 +1,6 @@
 
 import React from "react";
-import cat from "../../assets/pic21.png";
+import cat from "../../assets/optimized/pic21.webp";
 
 export default function CollectionHero() {
   return (
@@ -22,6 +22,9 @@ export default function CollectionHero() {
       <img
         src={cat}
         alt="Curated collections cats"
+        width={820}
+        height={547}
+        decoding="async"
         className="w-[280px] sm:w-[340px] md:w-[400px] h-auto object-contain"
       />
     </div>

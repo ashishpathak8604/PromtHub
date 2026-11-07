@@ -9,10 +9,10 @@ import EmptyState from '../components/profile/EmptyState';
 
 import { Bookmark, Heart, MessageSquarePlus, FileText, Sparkles } from 'lucide-react';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 
-import profileCat from '../assets/pic23.png';
+import profileCat from '../assets/optimized/pic23.webp';
 
 
 // -------------------------------------------------------
@@ -32,6 +32,34 @@ export default function Profile() {
 
   const [activeTab, setActiveTab] = useState('prompts');
 
+  // -----------------------------------------------------
+  // User data
+  // -----------------------------------------------------
+
+  const userBookmarks = useMemo(
+    () => prompts.filter((p) => bookmarkedPrompts.includes(p.id)),
+    [prompts, bookmarkedPrompts]
+  );
+
+  const userLikes = useMemo(
+    () => prompts.filter((p) => likedPrompts.includes(p.id)),
+    [prompts, likedPrompts]
+  );
+
+  const myPrompts = useMemo(
+    () => {
+      if (!user) return [];
+
+      return prompts.filter(
+        (p) =>
+          p.author.name === user.fullName ||
+          p.author.name === user.firstName ||
+          p.author.handle === `@${user.username}`
+      );
+    },
+    [prompts, user]
+  );
+
 
   // -----------------------------------------------------
   // Auth
@@ -48,26 +76,6 @@ export default function Profile() {
       </div>
     );
   }
-
-
-  // -----------------------------------------------------
-  // User data
-  // -----------------------------------------------------
-
-  const userBookmarks = prompts.filter((p) =>
-    bookmarkedPrompts.includes(p.id)
-  );
-
-  const userLikes = prompts.filter((p) =>
-    likedPrompts.includes(p.id)
-  );
-
-  const myPrompts = prompts.filter(
-    (p) =>
-      p.author.name === user.fullName ||
-      p.author.name === user.firstName ||
-      p.author.handle === `@${user.username}`
-  );
 
 
   // -----------------------------------------------------
@@ -236,6 +244,9 @@ export default function Profile() {
                 src={profileCat}
                 alt=""
                 aria-hidden="true"
+                width={600}
+                height={612}
+                decoding="async"
                 initial={{
                   opacity: 0,
                   y: 20,

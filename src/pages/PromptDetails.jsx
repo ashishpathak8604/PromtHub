@@ -4,6 +4,7 @@ import { useUser } from '@clerk/react';
 import { ArrowLeft, CheckCircle2, Copy, Heart, Bookmark, Edit } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '../utils/cn';
+import ExamplePreview from '../components/prompt/ExamplePreview';
 
 export default function PromptDetails() {
   const { id } = useParams();
@@ -107,6 +108,10 @@ export default function PromptDetails() {
             <img
               src={prompt.author.avatar}
               alt={prompt.author.name}
+              width={40}
+              height={40}
+              loading="lazy"
+              decoding="async"
               className="w-10 h-10 rounded-full border border-black/8"
             />
             <div>
@@ -144,6 +149,9 @@ export default function PromptDetails() {
             {prompt.content}
           </div>
         </div>
+
+        {/* Example Preview */}
+        <ExamplePreview prompt={prompt} />
 
         {/* Tags */}
         <div className="flex flex-wrap gap-2">

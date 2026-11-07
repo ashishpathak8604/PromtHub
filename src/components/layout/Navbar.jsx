@@ -1,5 +1,5 @@
 
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Sparkles, Plus, ChevronDown, User, LogOut } from "lucide-react";
 import {
   SignInButton,
@@ -8,7 +8,7 @@ import {
   useUser,
 } from "@clerk/react";
 import { useState, useRef, useEffect } from "react";
-import blackCat from "../../assets/pic12.png";
+import blackCat from "../../assets/optimized/pic12.webp";
 
 export default function Navbar() {
   const location = useLocation();
@@ -177,6 +177,9 @@ export default function Navbar() {
       src={blackCat}
       alt=""
       aria-hidden="true"
+      width={260}
+      height={173}
+      decoding="async"
       className="
         block
         w-full
@@ -316,6 +319,9 @@ export default function Navbar() {
         <img
           src={user?.imageUrl}
           alt={user?.fullName || "Profile"}
+          width={32}
+          height={32}
+          decoding="async"
           className="
             w-8
             h-8
@@ -382,6 +388,10 @@ export default function Navbar() {
               <img
                 src={user?.imageUrl}
                 alt={user?.fullName || "Profile"}
+                width={40}
+                height={40}
+                loading="lazy"
+                decoding="async"
                 className="
                   w-10
                   h-10

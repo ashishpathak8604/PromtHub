@@ -1,11 +1,14 @@
-import { TrendingUp } from 'lucide-react';
+import { useMemo } from 'react';
 import PromptGrid from '../components/prompt/PromptGrid';
 import { mockPrompts } from '../services/mockData';
 import TrendingHero from '../components/layout/TrendingHero';
 import TrendingFooter from '../components/layout/TrendingFooter';
 
 export default function Trending() {
-  const trendingPrompts = [...mockPrompts].sort((a, b) => b.likes - a.likes);
+  const trendingPrompts = useMemo(
+    () => [...mockPrompts].sort((a, b) => b.likes - a.likes),
+    []
+  );
 
   return (
     <div className="flex flex-col gap-8 pt-28 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto" style={{ minHeight: '100vh' }}>

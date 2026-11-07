@@ -68,3 +68,15 @@
 ::-webkit-scrollbar-track { background: #F7F6F2; }
 ::-webkit-scrollbar-thumb { background: #D4D1C9; border-radius: 9999px; }
 
+/* Respect the user's reduced-motion preference globally */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+

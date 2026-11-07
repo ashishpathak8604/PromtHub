@@ -1,16 +1,20 @@
 import { Link } from 'react-router-dom';
 import { Heart, Bookmark, Copy, CheckCircle2, MessageSquarePlus, Edit } from 'lucide-react';
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { useAppContext } from '../../context/AppContext';
 import { useUser } from '@clerk/react';
 import SuggestionModal from './SuggestionModal';
 import { cn } from '../../utils/cn';
 
-export default function PromptCard({ prompt }) {
+function PromptCard({
+  prompt,
+  liked = false,
+  bookmarked = false,
+  onToggleLike,
+  onToggleBookmark,
+}) {
   const [copied, setCopied] = useState(false);
   const [isSuggestModalOpen, setIsSuggestModalOpen] = useState(false);
-  const { toggleBookmark, toggleLike, isBookmarked, isLiked } = useAppContext();
   const { isSignedIn, user } = useUser();
 
   const handleCopy = (e) => {
@@ -24,13 +28,13 @@ export default function PromptCard({ prompt }) {
   const handleLike = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    toggleLike(prompt.id);
+    onToggleLike?.(prompt.id);
   };
 
   const handleBookmark = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    toggleBookmark(prompt.id);
+    onToggleBookmark?.(prompt.id);
   };
 
   const handleSuggest = (e) => {
@@ -38,9 +42,6 @@ export default function PromptCard({ prompt }) {
     e.stopPropagation();
     if (isSignedIn) setIsSuggestModalOpen(true);
   };
-
-  const hasLiked = isLiked(prompt.id);
-  const hasBookmarked = isBookmarked(prompt.id);
 
   // Check if current user is the author of this prompt
   const isAuthor = user && prompt.author && (
@@ -99,6 +100,13 @@ export default function PromptCard({ prompt }) {
               <img
                 src={prompt.author.avatar}
                 alt={prompt.author.name}
+                width={24}
+                height={24}
+                loading="lazy"
+                decoding="async"
+                onError={(event) => {
+                  event.currentTarget.style.visibility = 'hidden';
+                }}
                 className="w-6 h-6 rounded-full border border-black/8"
               />
               <div className="flex flex-col">
@@ -132,13 +140,13 @@ export default function PromptCard({ prompt }) {
                 onClick={handleLike}
                 className={cn(
                   'flex items-center gap-1 p-1.5 rounded-lg transition-colors z-10',
-                  hasLiked
+                  liked
                     ? 'text-[#B14A4A]'
                     : 'hover:bg-[#F5F4F0] hover:text-[#B14A4A]'
                 )}
-                title={hasLiked ? 'Unlike' : 'Like'}
+                title={liked ? 'Unlike' : 'Like'}
               >
-                <Heart className={cn('w-3.5 h-3.5', hasLiked && 'fill-[#B14A4A]')} />
+                <Heart className={cn('w-3.5 h-3.5', liked && 'fill-[#B14A4A]')} />
                 <span>{prompt.likes}</span>
               </button>
 
@@ -146,13 +154,13 @@ export default function PromptCard({ prompt }) {
                 onClick={handleBookmark}
                 className={cn(
                   'flex items-center gap-1 p-1.5 rounded-lg transition-colors z-10',
-                  hasBookmarked
+                  bookmarked
                     ? 'text-[#5B7A6B]'
                     : 'hover:bg-[#F5F4F0] hover:text-[#5B7A6B]'
                 )}
-                title={hasBookmarked ? 'Remove Bookmark' : 'Bookmark'}
+                title={bookmarked ? 'Remove Bookmark' : 'Bookmark'}
               >
-                <Bookmark className={cn('w-3.5 h-3.5', hasBookmarked && 'fill-[#5B7A6B]')} />
+                <Bookmark className={cn('w-3.5 h-3.5', bookmarked && 'fill-[#5B7A6B]')} />
                 <span>{prompt.bookmarks}</span>
               </button>
             </div>
@@ -168,3 +176,5 @@ export default function PromptCard({ prompt }) {
     </>
   );
 }
+
+export default memo(PromptCard);
