@@ -20,6 +20,6 @@ React • Vite • Tailwind CSS • Framer Motion • Clerk • Lucide React •
 
 🌐 Live Demo
 
-👉 Visit PromptHub --> https://promt-hub-8grm.vercel.app/
+👉 Visit PromptHub --> https://promthub86.vercel.app/
 
 Built from scratch as a frontend-focused project to explore modern UI design, component architecture, authentication, state management, animations, and production deployment. 💻🔥
